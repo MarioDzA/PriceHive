@@ -1,6 +1,6 @@
 const { chromium } = require('playwright');
 
-const scrappingAlkosto = async (productName) => {
+const scrapingAlkosto = async (productName) => {
     const productos = [];
     let index = 0;
     let count = 0;
@@ -32,11 +32,10 @@ const getAlkostoProduct = async (productName, productId) => {
 
         const originalProductName = productName.trim();
 
-        const searchLink = `https://www.alkosto.com/search?text=${productName.replace(/ /g, "+")}`;
+        const searchLink = `https://www.alkosto.com/search?text=${productName.replace(/ /g, "-")}`;
 
         await page.goto(searchLink, { timeout: 60000 });
         await page.waitForLoadState('networkidle');
-
 
         await new Promise(resolve => setTimeout(resolve, 3000));
 
@@ -44,8 +43,7 @@ const getAlkostoProduct = async (productName, productId) => {
 
         const filteredItems = await Promise.all(items.map(async (item) => {
             const text = (await item.innerText()).toLowerCase().replace(/[\s\u00A0]+/g, " ");
-            return originalProductName.toLowerCase().split(' ');
-            //.every(word => text.includes(word)) // searchs are 1:1 
+            return originalProductName.toLowerCase().split(' ').every(word => new RegExp(`\\b${word}\\b`, 'i').test(text));
         }));
 
         const finalItems = items.filter((_item, index) => filteredItems[index]);
@@ -53,15 +51,15 @@ const getAlkostoProduct = async (productName, productId) => {
         if (finalItems.length > productId) {
             try {
                 await finalItems[productId].click();
-                await new Promise(resolve => setTimeout(resolve, 5500));
                 await page.waitForLoadState('domcontentloaded');
+                await new Promise(resolve => setTimeout(resolve, 5500));
 
-                const title = await page.$eval('.new-container__header__title', el => el.innerText.trim());
-                const price = await page.$eval('#js-original_price', el => el.innerText.replace(/\s/g, '').replace('Hoy', ''));
-                const image = "https://www.alkosto.com" + await page.$eval('.owl-lazy.js-zoom-desktop-new', el => el.getAttribute('src'));
-                const description = await page.$eval('#wc-product-characteristics', el => `<p>${el.innerHTML}</p>`);
-                const specifications = await page.$eval('.tab-details__keyFeatures--list', el => `<ul>${el.innerHTML}</ul>`)
-                    .catch(async () => `<p>${await page.$eval('.new-container__table__classifications___type__wrap.new-container__table__classifications___type__wrap--mobile', el => el.innerText.trim())}</p>`);
+                const title = await page.$eval('.new-container__header__title', element => element.innerText.trim());
+                const price = await page.$eval('#js-original_price', element => element.innerText.replace(/\s/g, '').replace('Hoy', ''));
+                const image = "https://www.alkosto.com" + await page.$eval('.owl-lazy.js-zoom-desktop-new', element => element.getAttribute('src'));
+                const description = await page.$eval('#wc-product-characteristics', element => `<p>${element.innerHTML}</p>`);
+                const specifications = await page.$eval('.tab-details__keyFeatures--list', element => `<ul>${element.innerHTML}</ul>`)
+                    .catch(async () => `<p>${await page.$eval('.new-container__table__classifications___type__wrap.new-container__table__classifications___type__wrap--mobile', element => element.innerText.trim())}</p>`);
                 const url = page.url();
 
                 await browser.close();
@@ -82,4 +80,4 @@ const getAlkostoProduct = async (productName, productId) => {
 
 };
 
-module.exports = scrappingAlkosto;
+module.exports = scrapingAlkosto;
