@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Scrape Alkosto</title>
+</head>
+<body>
+    <h1>Scrape Alkosto</h1>
+    <form id="scrape-form">
+        <label for="productName">Product Name:</label>
+        <input type="text" id="productName" name="productName" required>
+        <button type="submit">Search</button>
+    </form>
+    <pre id="results"></pre>
+    <script>
+        document.getElementById('scrape-form').addEventListener('submit', async function(event) {
+            event.preventDefault();
+            const productName = document.getElementById('productName').value;
+            const response = await fetch('/scrape', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ productName })
+            });
+            const results = await response.json();
+            document.getElementById('results').textContent = JSON.stringify(results, null, 2);
+        });
+    </script>
+</body>
+</html>
