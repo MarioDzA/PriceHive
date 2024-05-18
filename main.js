@@ -3,6 +3,8 @@ const bodyParser = require('body-parser');
 const path = require('path');
 const scrappingAlkosto = require('./scrapers/scraper_alkosto');
 const scrappingML = require('./scrapers/scraper_mercadolibre');
+const scrapingExito = require('./scrapers/scraper_exito')
+const scrapingFalabella = require('./scrapers/scraper_falabella')
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -23,7 +25,7 @@ app.post('/scrape', async (req, res) => {
     }
 
     try {
-        const products = await scrappingML(productName);
+        const products = await scrappingAlkosto(productName);
         res.send(products);
     } catch (error) {
         console.error('Error scraping:', error);
