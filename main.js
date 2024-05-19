@@ -1,10 +1,10 @@
 const express = require('express');
 const bodyParser = require('body-parser');
 const path = require('path');
-const scrappingAlkosto = require('./scrapers/scraper_alkosto');
-const scrappingML = require('./scrapers/scraper_mercadolibre');
-const scrapingExito = require('./scrapers/scraper_exito')
-const scrapingFalabella = require('./scrapers/scraper_falabella')
+const scraperAlkosto = require('./scrapers/scraper_alkosto');
+const scraperML = require('./scrapers/scraper_mercadolibre');
+const scraperExito = require('./scrapers/scraper_exito');
+const scraperFalabella = require('./scrapers/scraper_falabella');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -25,7 +25,16 @@ app.post('/scrape', async (req, res) => {
     }
 
     try {
-        const products = await scrappingAlkosto(productName);
+        const scrapeResults = await Promise.all([
+            scraperML(productName),
+            scraperAlkosto(productName),
+            scraperExito(productName),
+            scraperFalabella(productName)
+        ]);
+
+        // Combine results from all scrapers into a single array
+        const products = scrapeResults.reduce((accumulator, current) => accumulator.concat(current), []);
+
         res.send(products);
     } catch (error) {
         console.error('Error scraping:', error);
@@ -36,3 +45,4 @@ app.post('/scrape', async (req, res) => {
 app.listen(PORT, () => {
     console.log(`Server is running on http://localhost:${PORT}`);
 });
+

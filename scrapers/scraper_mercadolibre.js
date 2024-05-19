@@ -2,39 +2,42 @@ const { chromium } = require('playwright');
 
 const scrapingML = async (productName) => {
     const productos = [];
-    let index = 0;
-    let count = 0;
+    const browser = await chromium.launch({ headless: true});
+    const page = await browser.newPage();
 
-    while (count < 5) {
-        const product = await getMLProduct(productName, index);
+    try {
+        let index = 0;
+        let count = 0;
 
-        if (product && product.found) {
+        while (count < 2) {
+            const product = await getMLProduct(page, productName, index);
+            if (!product || !product.found) break;
+
             productos.push(product);
             count++;
-        } else {
-            break;
-        }
+            index++;
 
-        index++;
-        if (index - count > 3) {
-            break;
+            if (index - count > 3) break;
         }
+    } catch (error) {
+        console.error('Error in scrapingML:', error);
+    } finally {
+        await browser.close();
+        console.log('Scrapping Finished in Mercado Libre')
     }
 
     return productos;
 };
 
-const getMLProduct = async (productName, productId) => {
+const getMLProduct = async (page, productName, productId) => {
     try {
-        const browser = await chromium.launch({ headless: false, slowMo: 500 });
-        const page = await browser.newPage();
-
         const searchLink = `https://listado.mercadolibre.com.co/${productName.replace(/ /g, "-")}`;
-
         await page.goto(searchLink);
         await page.waitForLoadState('domcontentloaded');
 
-        const filterByNew = await page.waitForSelector("span.ui-search-filter-name:text('Nuevo')", { timeout: 8000 });
+        await new Promise(resolve => setTimeout(resolve, 3000));
+
+        const filterByNew = await page.waitForSelector("span.ui-search-filter-name:text('Nuevo')");
         await filterByNew.click();
 
         await new Promise(resolve => setTimeout(resolve, 3000));
@@ -81,20 +84,16 @@ const getMLProduct = async (productName, productId) => {
                     }
                 }
 
-                await browser.close();
                 return { title, price, image, description, specifications, seller, url, found: true };
             } catch (error) {
-                await browser.close();
                 console.log(`Error processing product ${productId} from Mercado Libre:`, error);
             }
         } else {
-            await browser.close();
-            console.log('No matching product found for the given productId:', productId);
+            console.log('No matching product found for the given productId on Mercado Libre:', productId);
         }
 
     } catch (error) {
         console.error('Error in getMLProduct:', error);
-        await browser.close();
         return { found: false, error: error.message };
     }
 };

@@ -2,37 +2,40 @@ const { chromium } = require('playwright');
 
 const scrapingFalabella = async (productName) => {
     const productos = [];
-    let index = 0;
-    let count = 0;
+    const browser = await chromium.launch({ headless: true});
+    const page = await browser.newPage();
 
-    while (count < 5) {
-        const product = await getFalabellaProduct(productName, index);
+    try {
+        let index = 0;
+        let count = 0;
 
-        if (product && product.found) {
+        while (count < 2) {
+            const product = await getFalabellaProduct(page, productName, index);
+            if (!product || !product.found) break;
+
             productos.push(product);
             count++;
-        } else {
-            break;
-        }
+            index++;
 
-        index++;
-        if (index - count > 3) {
-            break;
+            if (index - count > 3) break;
         }
+    } catch (error) {
+        console.error('Error in scrapingFalabella:', error);
+    } finally {
+        await browser.close();
+        console.log('Scrapping Finished in Falabella')
     }
 
     return productos;
 };
 
-const getFalabellaProduct = async (productName, productId) => {
+const getFalabellaProduct = async (page, productName, productId) => {
     try {
-        const browser = await chromium.launch({ headless: false, slowMo: 500 });
-        const page = await browser.newPage();
-
         const searchLink = `https://www.falabella.com.co/falabella-co/search?Ntt=${productName.replace(/ /g, "+")}`;
-
-        await page.goto(searchLink, { timeout: 60000 });
+        await page.goto(searchLink);
         await page.waitForLoadState('domcontentloaded');
+
+        await new Promise(resolve => setTimeout(resolve, 3000));
 
         const buttonText = await page.$eval('.copy3', element => element.innerText.trim());
 
@@ -45,7 +48,7 @@ const getFalabellaProduct = async (productName, productId) => {
 
         await new Promise(resolve => setTimeout(resolve, 3000));
 
-        const items = await page.$$('.jsx-2481219049');
+        const items = await page.$$('.jsx-1484439449');
 
         const filteredItems = await Promise.all(items.map(async (item) => {
             const text = (await item.innerText()).toLowerCase().replace(/[\s\u00A0]+/g, " ");
@@ -85,21 +88,17 @@ const getFalabellaProduct = async (productName, productId) => {
                     specifications = 'No se encontraron especificaciones';
                 }
 
-                await browser.close();
                 return { title, price, image, description, specifications, seller, url, found: true };
             } catch (error) {
-                await browser.close();
                 console.log(`Error processing product ${productId} from Falabella:`, error);
             }
 
         } else {
-            await browser.close();
-            console.log('No matching product found for the given productId:', productId);
+            console.log('No matching product found for the given productId on Falabella:', productId);
         }
 
     } catch (error) {
         console.error('Error in getFalabellaProduct:', error);
-        await browser.close();
         return { found: false, error: error.message };
     }
 };

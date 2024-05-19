@@ -2,36 +2,37 @@ const { chromium } = require('playwright');
 
 const scrapingExito = async (productName) => {
     const productos = [];
-    let index = 0;
-    let count = 0;
+    const browser = await chromium.launch({ headless: true});
+    const page = await browser.newPage();
 
-    while (count < 5) {
-        const product = await getExitoProduct(productName, index);
+    try {
+        let index = 0;
+        let count = 0;
 
-        if (product && product.found) {
+        while (count < 2) {
+            const product = await getExitoProduct(page, productName, index);
+            if (!product || !product.found) break;
+
             productos.push(product);
             count++;
-        } else {
-            break;
-        }
+            index++;
 
-        index++;
-        if (index - count > 3) {
-            break;
+            if (index - count > 3) break;
         }
+    } catch (error) {
+        console.error('Error in scrapingExito:', error);
+    } finally {
+        await browser.close();
+        console.log('Scrapping Finished in Éxito')
     }
 
     return productos;
 };
 
-const getExitoProduct = async (productName, productId) => {
+const getExitoProduct = async (page, productName, productId) => {
     try {
-        const browser = await chromium.launch({ headless: false, slowMo: 500 });
-        const page = await browser.newPage();
-
         const searchLink = `https://www.exito.com/s?q=${productName.replace(/ /g, "+")}`;
-
-        await page.goto(searchLink, { timeout: 60000 });
+        await page.goto(searchLink);
         await page.waitForLoadState('domcontentloaded');
 
         await new Promise(resolve => setTimeout(resolve, 3000));
@@ -82,21 +83,18 @@ const getExitoProduct = async (productName, productId) => {
                     specifications = 'No se encontraron especificaciones';
                 }
 
-                await browser.close();
+    
                 return { title, price, image, description, specifications, seller, url, found: true };
             } catch (error) {
-                await browser.close();
                 console.log(`Error processing product ${productId} from Éxito:`, error);
             }
 
         } else {
-            await browser.close();
-            console.log('No matching product found for the given productId:', productId);
+            console.log('No matching product found for the given productId on Éxito:', productId);
         }
 
     } catch (error) {
         console.error('Error in getExitoProduct:', error);
-        await browser.close();
         return { found: false, error: error.message };
     }
 };
