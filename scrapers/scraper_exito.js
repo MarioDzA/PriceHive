@@ -9,7 +9,7 @@ const scrapingExito = async (productName) => {
         let index = 0;
         let count = 0;
 
-        while (count < 2) {
+        while (count < 3) {
             const product = await getExitoProduct(page, productName, index);
             if (!product || !product.found) break;
 

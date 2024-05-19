@@ -2,9 +2,10 @@ const express = require('express');
 const bodyParser = require('body-parser');
 const path = require('path');
 const scraperAlkosto = require('./scrapers/scraper_alkosto');
-const scraperML = require('./scrapers/scraper_mercadolibre');
+const scraperMercadoLibre = require('./scrapers/scraper_mercadolibre');
 const scraperExito = require('./scrapers/scraper_exito');
 const scraperFalabella = require('./scrapers/scraper_falabella');
+const scraperOlimpica = require('./scrapers/scraper_olimpica')
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -26,10 +27,11 @@ app.post('/scrape', async (req, res) => {
 
     try {
         const scrapeResults = await Promise.all([
-            scraperML(productName),
-            scraperAlkosto(productName),
-            scraperExito(productName),
-            scraperFalabella(productName)
+            //scraperMercadoLibre(productName),
+            //scraperAlkosto(productName),
+            //scraperExito(productName),
+            scraperFalabella(productName),
+            //scraperOlimpica(productName)
         ]);
 
         // Combine results from all scrapers into a single array

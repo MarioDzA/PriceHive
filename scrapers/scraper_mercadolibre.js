@@ -1,16 +1,16 @@
 const { chromium } = require('playwright');
 
-const scrapingML = async (productName) => {
+const scrapingMercadoLibre = async (productName) => {
     const productos = [];
-    const browser = await chromium.launch({ headless: true});
+    const browser = await chromium.launch({ headless: true });
     const page = await browser.newPage();
 
     try {
         let index = 0;
         let count = 0;
 
-        while (count < 2) {
-            const product = await getMLProduct(page, productName, index);
+        while (count < 3) {
+            const product = await getMercadoLibreProduct(page, productName, index);
             if (!product || !product.found) break;
 
             productos.push(product);
@@ -20,7 +20,7 @@ const scrapingML = async (productName) => {
             if (index - count > 3) break;
         }
     } catch (error) {
-        console.error('Error in scrapingML:', error);
+        console.error('Error in scrapingMercadoLibre:', error);
     } finally {
         await browser.close();
         console.log('Scrapping Finished in Mercado Libre')
@@ -29,7 +29,7 @@ const scrapingML = async (productName) => {
     return productos;
 };
 
-const getMLProduct = async (page, productName, productId) => {
+const getMercadoLibreProduct = async (page, productName, productId) => {
     try {
         const searchLink = `https://listado.mercadolibre.com.co/${productName.replace(/ /g, "-")}`;
         await page.goto(searchLink);
@@ -93,9 +93,9 @@ const getMLProduct = async (page, productName, productId) => {
         }
 
     } catch (error) {
-        console.error('Error in getMLProduct:', error);
+        console.error('Error in getMercadoLibreProduct:', error);
         return { found: false, error: error.message };
     }
 };
 
-module.exports = scrapingML;
+module.exports = scrapingMercadoLibre;

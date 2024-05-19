@@ -2,14 +2,14 @@ const { chromium } = require('playwright');
 
 const scrapingFalabella = async (productName) => {
     const productos = [];
-    const browser = await chromium.launch({ headless: true});
+    const browser = await chromium.launch({ headless: false});
     const page = await browser.newPage();
 
     try {
         let index = 0;
         let count = 0;
 
-        while (count < 2) {
+        while (count < 3) {
             const product = await getFalabellaProduct(page, productName, index);
             if (!product || !product.found) break;
 
