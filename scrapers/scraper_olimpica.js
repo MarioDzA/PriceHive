@@ -2,7 +2,7 @@ const { chromium } = require('playwright');
 
 const scrapingOlimpica = async (productName) => {
     const productos = [];
-    const browser = await chromium.launch({ headless: false, slowMo: 500 });
+    const browser = await chromium.launch();
     const page = await browser.newPage();
 
     try {
@@ -37,7 +37,7 @@ const getOlimpicaProduct = async (page, productName, productId) => {
 
         await new Promise(resolve => setTimeout(resolve, 3000));
 
-        const items = await page.$$('span.vtex-product-summary-2-x-productBrand.vtex-product-summary-2-x-brandName.t-body', { timeout: 15000 });
+        const items = await page.$$('a.vtex-product-summary-2-x-clearLink.vtex-product-summary-2-x-clearLink--product-summary', { timeout: 15000 });
 
         const filteredItems = await Promise.all(items.map(async (item) => {
             const text = (await item.innerText()).toLowerCase().replace(/[\s\u00A0]+/g, " ");
@@ -52,26 +52,27 @@ const getOlimpicaProduct = async (page, productName, productId) => {
                 return false;
             }
             return productWords.every(word => words.some(w => wordCheck(word, w)));
-        }));        
+        }));
 
         const finalItems = items.filter((_item, index) => filteredItems[index]);
 
         if (finalItems.length > productId) {
             try {
-                await finalItems[productId].click();
+                const productUrl = await finalItems[productId].getAttribute('href');
+                await page.goto("https://www.olimpica.com" + productUrl)
                 await page.waitForLoadState('domcontentloaded');
                 await new Promise(resolve => setTimeout(resolve, 5500));
 
                 const seller = "Olimpica";
                 const url = page.url();
                 const title = await page.$eval('.vtex-store-components-3-x-productNameContainer.vtex-store-components-3-x-productNameContainer--quickview.mv0.t-heading-4', element => element.innerText.trim());
-                const price = await page.$eval('.false.olimpica-dinamic-flags-0-x-listPrices', element => element.innerText.trim());
+                const price = await page.$eval('.olimpica-dinamic-flags-0-x-currencyContainer', element => element.innerText.trim());
                 const image = await page.$eval('.vtex-store-components-3-x-productImageTag.vtex-store-components-3-x-productImageTag--main', element => element.getAttribute('src'));
                 let description;
                 try {
-                    description = await page.$eval('.vtex-store-components-3-x-content.h-auto', element => element.innerText.trim());
+                    description = await page.$eval('.vtex-store-components-3-x-content.h-auto', element => `<p>${element.textContent.trim()}</p>`);
                 } catch (error) {
-                    description = 'No se encontro descripción';
+                    description = '<p>No se encontró descripción</p>';
                 }
                 let specifications;
                 try {
@@ -93,7 +94,7 @@ const getOlimpicaProduct = async (page, productName, productId) => {
                     });
                     specifications = `<ul>${specifications}</ul>`;
                 } catch {
-                    specifications = 'No se encontraron especificaciones';
+                    specifications = '<p>No se encontraron especificaciones</p>';
                 }
 
                 return { title, price, image, description, specifications, seller, url, found: true };

@@ -2,7 +2,7 @@ const { chromium } = require('playwright');
 
 const scrapingExito = async (productName) => {
     const productos = [];
-    const browser = await chromium.launch({ headless: true});
+    const browser = await chromium.launch();
     const page = await browser.newPage();
 
     try {
@@ -48,7 +48,8 @@ const getExitoProduct = async (page, productName, productId) => {
 
         if (finalItems.length > productId) {
             try {
-                await finalItems[productId].click();
+                const productUrl = await finalItems[productId].getAttribute('href');
+                await page.goto("https://www.exito.com" + productUrl)
                 await page.waitForLoadState('domcontentloaded');
                 await new Promise(resolve => setTimeout(resolve, 5500));
 
@@ -59,9 +60,9 @@ const getExitoProduct = async (page, productName, productId) => {
                 const image = await page.$eval('.ImgZoom_ContainerImage__0r4y9 img', element => element.getAttribute('src'));
                 let description;
                 try {
-                    description = await page.$eval('div[data-fs-description-text=true]', element => element.innerText.trim());
+                    description = await page.$eval('div[data-fs-description-text=true]', element => `<p>${element.innerText.trim()}</p>`);
                 } catch {
-                    description = 'No se encontró descripción';
+                    description = '<p>No se encontró descripción</p>';
                 }
                 let specifications = '';
                 try {
@@ -73,17 +74,16 @@ const getExitoProduct = async (page, productName, productId) => {
                         }).join('');
                     });
                 } catch {
-                    specifications = 'No se encontraron especificaciones';
+                    specifications = '<p>No se encontraron especificaciones</p>';
                 }
-                if(specifications == '<ul></ul>'){
-                    specifications = 'No se encontraron especificaciones';
+                if (specifications == '<ul></ul>') {
+                    specifications = '<p>No se encontraron especificaciones</p>';
                 }
                 specifications = `<ul>${specifications}</ul>`;
-                if(specifications == '<ul><li>Referencia: SIN REF</li></ul>'){
-                    specifications = 'No se encontraron especificaciones';
+                if (specifications == '<ul><li>Referencia: SIN REF</li></ul>') {
+                    specifications = '<p>No se encontraron especificaciones</p>';
                 }
 
-    
                 return { title, price, image, description, specifications, seller, url, found: true };
             } catch (error) {
                 console.log(`Error processing product ${productId} from Éxito:`, error);

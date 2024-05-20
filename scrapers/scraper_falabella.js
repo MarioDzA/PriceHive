@@ -2,7 +2,7 @@ const { chromium } = require('playwright');
 
 const scrapingFalabella = async (productName) => {
     const productos = [];
-    const browser = await chromium.launch({ headless: false});
+    const browser = await chromium.launch();
     const page = await browser.newPage();
 
     try {
@@ -48,7 +48,7 @@ const getFalabellaProduct = async (page, productName, productId) => {
 
         await new Promise(resolve => setTimeout(resolve, 3000));
 
-        const items = await page.$$('.jsx-1484439449');
+        const items = await page.$$('a.jsx-2481219049.jsx-2056183481');
 
         const filteredItems = await Promise.all(items.map(async (item) => {
             const text = (await item.innerText()).toLowerCase().replace(/[\s\u00A0]+/g, " ");
@@ -59,7 +59,8 @@ const getFalabellaProduct = async (page, productName, productId) => {
 
         if (finalItems.length > productId) {
             try {
-                await finalItems[productId].click();
+                const productUrl = await finalItems[productId].getAttribute('href');
+                await page.goto(productUrl);
                 await page.waitForLoadState('domcontentloaded');
                 await new Promise(resolve => setTimeout(resolve, 5500));
 
@@ -70,9 +71,9 @@ const getFalabellaProduct = async (page, productName, productId) => {
                 const image = await page.$eval('.jsx-2657190317 img', element => element.getAttribute('src'));
                 let description;
                 try {
-                    description = await page.$eval('.fb-product-information-tab__copy', element => element.innerText.trim());
+                    description = await page.$eval('.fb-product-information-tab__copy', element => `<p>${element.innerText.trim()}</p>`);
                 } catch {
-                    description = 'No se encontró descripción';
+                    description = '<p>No se encontró descripción</p>';
                 }
                 let specifications = '';
                 try {
@@ -85,7 +86,7 @@ const getFalabellaProduct = async (page, productName, productId) => {
                     });
                     specifications = `<ul>${specifications}</ul>`;
                 } catch {
-                    specifications = 'No se encontraron especificaciones';
+                    specifications = '<p>No se encontraron especificaciones</p>';
                 }
 
                 return { title, price, image, description, specifications, seller, url, found: true };

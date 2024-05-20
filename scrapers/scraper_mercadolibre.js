@@ -2,7 +2,7 @@ const { chromium } = require('playwright');
 
 const scrapingMercadoLibre = async (productName) => {
     const productos = [];
-    const browser = await chromium.launch({ headless: true });
+    const browser = await chromium.launch();
     const page = await browser.newPage();
 
     try {
@@ -43,7 +43,7 @@ const getMercadoLibreProduct = async (page, productName, productId) => {
         await new Promise(resolve => setTimeout(resolve, 3000));
         await page.waitForLoadState('domcontentloaded');
 
-        const items = await page.$$('h2.ui-search-item__title');
+        const items = await page.$$('a.ui-search-item__group__element.ui-search-link__title-card.ui-search-link');
 
         const filteredItems = await Promise.all(items.map(async (item) => {
             const text = (await item.innerText()).toLowerCase().replace(/[\s\u00A0]+/g, " ");
@@ -54,7 +54,8 @@ const getMercadoLibreProduct = async (page, productName, productId) => {
 
         if (finalItems.length > productId) {
             try {
-                await finalItems[productId].click();
+                const productUrl = await finalItems[productId].getAttribute('href');
+                await page.goto(productUrl)
                 await page.waitForLoadState('domcontentloaded');
                 await new Promise(resolve => setTimeout(resolve, 5500));
 
@@ -69,7 +70,7 @@ const getMercadoLibreProduct = async (page, productName, productId) => {
                 const image = await page.$eval('.ui-pdp-gallery__figure img', element => element.getAttribute('src'));
                 const full_description = await page.waitForSelector("a.ui-pdp-collapsable__action[title='Ver descripción completa']");
                 await full_description.click();
-                const description = await page.$eval('.ui-pdp-description__content', element => element.innerHTML);
+                const description = await page.$eval('.ui-pdp-description__content', element => `<p>${element.innerHTML}</p>`);
                 let specifications;
                 try {
                     specifications = await page.$eval('.ui-vpp-highlighted-specs__features-list', element => {
@@ -80,7 +81,7 @@ const getMercadoLibreProduct = async (page, productName, productId) => {
                     try {
                         specifications = await page.$eval('.ui-vpp-highlighted-specs__attribute-columns', element => element.innerText.trim());
                     } catch {
-                        specifications = 'No se encontraron especificaciones';
+                        specifications = '<p>No se encontraron especificaciones</p>';
                     }
                 }
 

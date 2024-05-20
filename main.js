@@ -27,11 +27,11 @@ app.post('/scrape', async (req, res) => {
 
     try {
         const scrapeResults = await Promise.all([
-            //scraperMercadoLibre(productName),
-            //scraperAlkosto(productName),
-            //scraperExito(productName),
+            scraperMercadoLibre(productName),
+            scraperAlkosto(productName),
+            scraperExito(productName),
             scraperFalabella(productName),
-            //scraperOlimpica(productName)
+            scraperOlimpica(productName)
         ]);
 
         // Combine results from all scrapers into a single array

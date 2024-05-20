@@ -2,7 +2,7 @@ const { chromium } = require('playwright');
 
 const scrapingAlkosto = async (productName) => {
     const productos = [];
-    const browser = await chromium.launch({ headless: true});
+    const browser = await chromium.launch();
     const page = await browser.newPage();
 
     try {
@@ -49,7 +49,8 @@ const getAlkostoProduct = async (page, productName, productId) => {
 
         if (finalItems.length > productId) {
             try {
-                await finalItems[productId].click();
+                const productUrl = await finalItems[productId].getAttribute('data-url');
+                await page.goto("https://www.alkosto.com" + productUrl)
                 await page.waitForLoadState('domcontentloaded');
                 await new Promise(resolve => setTimeout(resolve, 5500));
 
@@ -69,7 +70,7 @@ const getAlkostoProduct = async (page, productName, productId) => {
                     try {
                         specifications = await page.$eval('.new-container__table__classifications___type__wrap.new-container__table__classifications___type__wrap--mobile', element => element.innerText.trim());
                     } catch {
-                        specifications = 'No se encontraron especificaciones';
+                        specifications = '<p>No se encontraron especificaciones</p>';
                     }
                 }
 
