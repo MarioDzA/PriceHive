@@ -2,7 +2,7 @@ const { chromium } = require('playwright');
 
 const scrapingMercadoLibre = async (productName) => {
     const productos = [];
-    const browser = await chromium.launch();
+    const browser = await chromium.launch({ channel: 'msedge' });
     const page = await browser.newPage();
 
     try {
@@ -22,7 +22,12 @@ const scrapingMercadoLibre = async (productName) => {
     } catch (error) {
         console.error('Error in scrapingMercadoLibre:', error);
     } finally {
-        await browser.close();
+        if (page) {
+            await page.close();
+        }
+        if (browser) {
+            await browser.close();
+        }
         console.log('Scrapping Finished in Mercado Libre')
     }
 

@@ -2,7 +2,7 @@ const { chromium } = require('playwright');
 
 const scrapingAlkosto = async (productName) => {
     const productos = [];
-    const browser = await chromium.launch();
+    const browser = await chromium.launch({ channel: 'msedge' });
     const page = await browser.newPage();
 
     try {
@@ -22,7 +22,12 @@ const scrapingAlkosto = async (productName) => {
     } catch (error) {
         console.error('Error in scrapingAlkosto:', error);
     } finally {
-        await browser.close();
+        if (page) {
+            await page.close();
+        }
+        if (browser) {
+            await browser.close();
+        }
         console.log('Scrapping Finished in Alkosto')
     }
 
