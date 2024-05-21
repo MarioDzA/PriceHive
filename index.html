@@ -1,12 +1,14 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Scraper</title>
+    <link rel="stylesheet" href="/public/styles.css?v=1.1">
+    <title>PriceHive</title>
 </head>
 <body>
-    <h1>Scrape</h1>
+    <img src="/public/PriceHive.png" alt="Logo" id="logo">
     <form id="scrape-form">
         <label for="productName">Product Name:</label>
         <input type="text" id="productName" name="productName" required>
@@ -14,7 +16,7 @@
     </form>
     <pre id="results"></pre>
     <script>
-        document.getElementById('scrape-form').addEventListener('submit', async function(event) {
+        document.getElementById('scrape-form').addEventListener('submit', async function (event) {
             event.preventDefault();
             const productName = document.getElementById('productName').value;
             const response = await fetch('/scrape', {
@@ -29,4 +31,5 @@
         });
     </script>
 </body>
+
 </html>

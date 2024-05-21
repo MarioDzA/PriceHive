@@ -5,13 +5,14 @@ const scraperAlkosto = require('./scrapers/scraper_alkosto');
 const scraperMercadoLibre = require('./scrapers/scraper_mercadolibre');
 const scraperExito = require('./scrapers/scraper_exito');
 const scraperFalabella = require('./scrapers/scraper_falabella');
-const scraperOlimpica = require('./scrapers/scraper_olimpica')
+const scraperOlimpica = require('./scrapers/scraper_olimpica');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
 
 // Middleware to serve static files
 app.use(bodyParser.json());
+app.use(express.static(path.join(__dirname, 'public')));
 
 // Serve the HTML file from the root directory
 app.get('/', (req, res) => {
