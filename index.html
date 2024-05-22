@@ -1,35 +1,210 @@
 <!DOCTYPE html>
 <html lang="en">
-
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="stylesheet" href="/public/styles.css?v=1.1">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="stylesheet" href="/styles.css?v=1.1" />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Lato:ital,wght@0,100;0,300;0,400;0,700;0,900;1,100;1,300;1,400;1,700;1,900&family=Montserrat:wght@500&display=swap"
+      rel="stylesheet"
+    />
     <title>PriceHive</title>
-</head>
-<body>
-    <img src="/public/PriceHive.png" alt="Logo" id="logo">
+  </head>
+  <body>
+    <img src="/PriceHive.png" alt="Logo" id="logo" />
     <form id="scrape-form">
-        <label for="productName">Product Name:</label>
-        <input type="text" id="productName" name="productName" required>
-        <button type="submit">Search</button>
+      <label for="productName">Product Name:</label>
+      <input type="text" id="productName" name="productName" required />
+      <button type="submit">Search</button>
     </form>
-    <pre id="results"></pre>
+    <div id="loading" class="hidden">
+      <div class="loader"></div>
+    </div>
+    <div id="results" class="hidden"></div>
+    <div id="pagination"></div>
     <script>
-        document.getElementById('scrape-form').addEventListener('submit', async function (event) {
-            event.preventDefault();
-            const productName = document.getElementById('productName').value;
-            const response = await fetch('/scrape', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({ productName })
-            });
-            const results = await response.json();
-            document.getElementById('results').textContent = JSON.stringify(results, null, 2);
-        });
-    </script>
-</body>
+      document.getElementById("scrape-form").addEventListener("submit", async function(event) {
+    event.preventDefault();
+    const productName = document.getElementById("productName").value;
 
+    // Mostrar el loader
+    document.getElementById("loading").classList.remove("hidden");
+    document.getElementById("results").classList.add("hidden");
+    document.getElementById("pagination").classList.add("hidden");
+
+    const response = await fetch("/scrape", {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ productName }),
+    });
+
+    const results = await response.json();
+
+    // Ocultar el loader
+    document.getElementById("loading").classList.add("hidden");
+    document.getElementById("results").classList.remove("hidden");
+    document.getElementById("pagination").classList.remove("hidden");
+
+    displayResults(results);
+});
+
+function displayResults(results) {
+    const resultsContainer = document.getElementById("results");
+    resultsContainer.innerHTML = ""; // Clear previous results
+
+    results.forEach((product) => {
+        const productElement = document.createElement("div");
+        productElement.classList.add("result");
+
+        if (product.image) {
+            const imgElement = document.createElement("img");
+            imgElement.src = product.image;
+            productElement.appendChild(imgElement);
+        }
+
+        const detailsElement = document.createElement("div");
+        detailsElement.classList.add("result-details");
+
+        if (product.name) {
+            const nameElement = document.createElement("p");
+            nameElement.textContent = `Name: ${product.name}`;
+            detailsElement.appendChild(nameElement);
+        }
+
+        if (product.price) {
+            const priceElement = document.createElement("p");
+            priceElement.textContent = `Price: ${product.price}`;
+            detailsElement.appendChild(priceElement);
+        }
+
+        if (product.description) {
+            const descriptionElement = document.createElement("p");
+            const shortDescription = product.description.length > 200 ? product.description.substring(0, 200) + "..." : product.description;
+            descriptionElement.innerHTML = `Description: ${shortDescription}`;
+            
+            if (product.description.length > 200) {
+                const readMoreLink = document.createElement("a");
+                readMoreLink.textContent = "Read more";
+                readMoreLink.href = "#";
+                readMoreLink.classList.add("read-more");
+                readMoreLink.onclick = function() {
+                    descriptionElement.innerHTML = `Description: ${product.description}`;
+                    return false; // Prevent default link behavior
+                };
+                descriptionElement.appendChild(readMoreLink);
+            }
+
+            detailsElement.appendChild(descriptionElement);
+        }
+
+        if (product.link) {
+            const linkElement = document.createElement("a");
+            linkElement.href = product.link;
+            linkElement.textContent = "View Product";
+            linkElement.target = "_blank"; // Open in new tab
+            linkElement.classList.add("view-product-button"); // Add a class for styling
+            detailsElement.appendChild(linkElement);
+        }
+
+        productElement.appendChild(detailsElement);
+        resultsContainer.appendChild(productElement);
+    });
+
+    // Initialize pagination
+    setupPagination(results);
+}
+
+function setupPagination(results) {
+    const paginationContainer = document.getElementById("pagination");
+    paginationContainer.innerHTML = ""; // Clear previous pagination
+
+    const totalPages = Math.ceil(results.length / 5);
+
+    for (let i = 1; i <= totalPages; i++) {
+        const pageButton = document.createElement("button");
+        pageButton.textContent = i;
+        pageButton.addEventListener("click", () => paginate(results, i));
+        paginationContainer.appendChild(pageButton);
+    }
+
+    // Show first page by default
+    paginate(results, 1);
+}
+
+function paginate(results, page) {
+    const resultsContainer = document.getElementById("results");
+    resultsContainer.innerHTML = ""; // Clear previous results
+
+    const start = (page - 1) * 5;
+    const end = start + 5;
+    const paginatedResults = results.slice(start, end);
+
+    paginatedResults.forEach((product) => {
+        const productElement = document.createElement("div");
+        productElement.classList.add("result");
+
+        if (product.image) {
+            const imgElement = document.createElement("img");
+            imgElement.src = product.image;
+            productElement.appendChild(imgElement);
+        }
+
+        const detailsElement = document.createElement("div");
+        detailsElement.classList.add("result-details");
+
+        if (product.name) {
+            const nameElement = document.createElement("p");
+            nameElement.textContent = `Name: ${product.name}`;
+            detailsElement.appendChild(nameElement);
+        }
+
+        if (product.price) {
+            const priceElement = document.createElement("p");
+            priceElement.textContent = `Price: ${product.price}`;
+            detailsElement.appendChild(priceElement);
+        }
+
+        if (product.description) {
+            const descriptionElement = document.createElement("p");
+            const shortDescription = product.description.length > 200 ? product.description.substring(0, 200) + "..." : product.description;
+            descriptionElement.innerHTML = `Description: ${shortDescription}`;
+            
+            if (product.description.length > 200) {
+                const readMoreLink = document.createElement("a");
+                readMoreLink.textContent = "Read more";
+                readMoreLink.href = "#";
+                readMoreLink.classList.add("read-more");
+                readMoreLink.onclick = function() {
+                    descriptionElement.innerHTML = `Description: ${product.description}`;
+                    return false; // Prevent default link behavior
+                };
+                descriptionElement.appendChild(readMoreLink);
+            }
+
+            detailsElement.appendChild(descriptionElement);
+        }
+
+        if (product.link) {
+            const linkElement = document.createElement("a");
+            linkElement.href = product.link;
+            linkElement.textContent = "View Product";
+            linkElement.target = "_blank"; // Open in new tab
+            linkElement.classList.add("view-product-button"); // Add a class for styling
+            detailsElement.appendChild(linkElement);
+        }
+
+        productElement.appendChild(detailsElement);
+        resultsContainer.appendChild(productElement);
+    });
+
+    // Highlight current page button
+    const paginationContainer = document.getElementById("pagination");
+    Array.from(paginationContainer.children).forEach((button, index) => {
+        button.classList.toggle("active", index === page - 1);
+    });
+}
+    </script>
+  </body>
 </html>

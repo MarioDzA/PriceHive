@@ -1,5 +1,5 @@
 body {
-    font-family: 'Arial', sans-serif;
+    font-family: 'Lato', sans-serif;
     background-color: #f4f4f9;
     margin: 0;
     padding: 0;
@@ -13,7 +13,7 @@ body {
 
 #logo {
     max-width: 100%;
-    height: 95px;;
+    height: 95px;
     margin-bottom: 20px;
 }
 
@@ -60,16 +60,122 @@ button:hover {
     background-color: #0056b3;
 }
 
+#loading {
+    font-size: 24px;
+    color: #007bff;
+    margin-top: 20px;
+}
+
+.loader {
+    border: 8px solid #f3f3f3; /* Light grey */
+    border-top: 8px solid #007bff; /* Blue */
+    border-radius: 50%;
+    width: 40px;
+    height: 40px;
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
 #results {
     margin-top: 20px;
     padding: 20px;
+    width: 90%;
+    max-width: 800px;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+.result {
+    display: flex;
+    align-items: center;
     background: #fff;
     border-radius: 8px;
     box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-    width: 90%;
-    max-width: 400px;
-    white-space: pre-wrap;
-    font-size: 14px;
-    color: #333;
-    overflow-x: auto;
+    padding: 20px;
+    transition: transform 0.3s;
+}
+
+.result:hover {
+    transform: scale(1.02);
+}
+
+.result img {
+    max-width: 100px;
+    max-height: 100px;
+    margin-right: 20px;
+    border-radius: 8px;
+}
+
+.result-details {
+    flex: 1;
+}
+
+.result-details p {
+    margin: 5px 0;
+}
+
+.result-details a {
+    display: inline-block;
+    margin-top: 10px;
+    padding: 10px 15px;
+    background-color: #007bff;
+    color: #fff;
+    border-radius: 4px;
+    text-decoration: none;
+    transition: background-color 0.3s;
+}
+
+.result-details a:hover {
+    background-color: #0056b3;
+}
+
+#pagination {
+    margin-top: 20px;
+    display: flex;
+    justify-content: center;
+    gap: 5px;
+}
+
+#pagination button {
+    padding: 10px 15px;
+    background-color: #5baafe;
+    border: 1px solid #007bff;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: background-color 0.3s, color 0.3s;
+}
+
+#pagination button:hover {
+    background-color: #007bff;
+    color: #ffffff;
+}
+
+#pagination button.active {
+    background-color: #007bff;
+    color: #fff;
+    cursor: default;
+}
+
+.hidden {
+    display: none;
+}
+
+.view-product-button {
+    display: inline-block;
+    margin-top: 10px;
+    padding: 8px 16px;
+    background-color: #007bff;
+    color: #fff;
+    text-decoration: none;
+    border-radius: 4px;
+    transition: background-color 0.3s;
+}
+
+.view-product-button:hover {
+    background-color: #0056b3;
 }
