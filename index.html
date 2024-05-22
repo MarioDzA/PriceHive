@@ -17,6 +17,13 @@
       <input type="text" id="productName" name="productName" required />
       <button type="submit">Search</button>
     </form>
+    <div id="filters">
+        <label for="sortOrder">Sort by Price:</label>
+        <select id="sortOrder">
+          <option value="asc">Lowest to Highest</option>
+          <option value="desc">Highest to Lowest</option>
+        </select>
+      </div>
     <div id="loading" class="hidden">
       <div class="loader"></div>
     </div>
@@ -50,7 +57,34 @@
     displayResults(results);
 });
 
+document.getElementById("sortOrder").addEventListener("change", function() {
+    const sortOrder = document.getElementById("sortOrder").value;
+    sortAndDisplayResults(sortOrder);
+});
+
+let currentResults = [];
+
 function displayResults(results) {
+    currentResults = results;
+    sortAndDisplayResults(document.getElementById("sortOrder").value);
+}
+
+function sortAndDisplayResults(sortOrder) {
+    const sortedResults = currentResults.slice().sort((a, b) => {
+        const priceA = parseFloat(a.price.replace(/[^\d.-]/g, ''));
+        const priceB = parseFloat(b.price.replace(/[^\d.-]/g, ''));
+        if (sortOrder === "asc") {
+            return priceA - priceB;
+        } else {
+            return priceB - priceA;
+        }
+    });
+
+    renderResults(sortedResults);
+    setupPagination(sortedResults);
+}
+
+function renderResults(results) {
     const resultsContainer = document.getElementById("results");
     resultsContainer.innerHTML = ""; // Clear previous results
 
@@ -111,9 +145,6 @@ function displayResults(results) {
         productElement.appendChild(detailsElement);
         resultsContainer.appendChild(productElement);
     });
-
-    // Initialize pagination
-    setupPagination(results);
 }
 
 function setupPagination(results) {
@@ -141,63 +172,7 @@ function paginate(results, page) {
     const end = start + 5;
     const paginatedResults = results.slice(start, end);
 
-    paginatedResults.forEach((product) => {
-        const productElement = document.createElement("div");
-        productElement.classList.add("result");
-
-        if (product.image) {
-            const imgElement = document.createElement("img");
-            imgElement.src = product.image;
-            productElement.appendChild(imgElement);
-        }
-
-        const detailsElement = document.createElement("div");
-        detailsElement.classList.add("result-details");
-
-        if (product.name) {
-            const nameElement = document.createElement("p");
-            nameElement.textContent = `Name: ${product.name}`;
-            detailsElement.appendChild(nameElement);
-        }
-
-        if (product.price) {
-            const priceElement = document.createElement("p");
-            priceElement.textContent = `Price: ${product.price}`;
-            detailsElement.appendChild(priceElement);
-        }
-
-        if (product.description) {
-            const descriptionElement = document.createElement("p");
-            const shortDescription = product.description.length > 200 ? product.description.substring(0, 200) + "..." : product.description;
-            descriptionElement.innerHTML = `Description: ${shortDescription}`;
-            
-            if (product.description.length > 200) {
-                const readMoreLink = document.createElement("a");
-                readMoreLink.textContent = "Read more";
-                readMoreLink.href = "#";
-                readMoreLink.classList.add("read-more");
-                readMoreLink.onclick = function() {
-                    descriptionElement.innerHTML = `Description: ${product.description}`;
-                    return false; // Prevent default link behavior
-                };
-                descriptionElement.appendChild(readMoreLink);
-            }
-
-            detailsElement.appendChild(descriptionElement);
-        }
-
-        if (product.link) {
-            const linkElement = document.createElement("a");
-            linkElement.href = product.link;
-            linkElement.textContent = "View Product";
-            linkElement.target = "_blank"; // Open in new tab
-            linkElement.classList.add("view-product-button"); // Add a class for styling
-            detailsElement.appendChild(linkElement);
-        }
-
-        productElement.appendChild(detailsElement);
-        resultsContainer.appendChild(productElement);
-    });
+    renderResults(paginatedResults);
 
     // Highlight current page button
     const paginationContainer = document.getElementById("pagination");
