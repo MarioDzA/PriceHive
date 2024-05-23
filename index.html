@@ -111,6 +111,12 @@
             detailsElement.appendChild(nameElement);
           }
 
+          if (product.seller) {
+            const sellerElement = document.createElement("p");
+            sellerElement.textContent = `Seller: ${product.seller}`;
+            detailsElement.appendChild(sellerElement);
+          }
+
           if (product.price) {
             const priceElement = document.createElement("p");
             priceElement.textContent = `Price: ${product.price}`;
