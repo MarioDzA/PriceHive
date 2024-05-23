@@ -1,4 +1,4 @@
 # PriceHive
 
 Integrantes: 
-Juan José Campanella De Oro & Mario Díaz Antequera
+Juan José Campanella De Oro & Mario Diaz Antequera
