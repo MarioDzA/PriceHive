@@ -11,13 +11,14 @@ const scrapingAlkosto = async (productName) => {
 
         while (count < 3) {
             const product = await getAlkostoProduct(page, productName, index);
-            if (!product || !product.found) break;
 
-            productos.push(product);
-            count++;
+            if (product && product.found) {
+                productos.push(product);
+                count++;
+            }
+
             index++;
-
-            if (index - count > 3) break;
+            
         }
     } catch (error) {
         console.error('Error in scrapingAlkosto:', error);
@@ -82,6 +83,7 @@ const getAlkostoProduct = async (page, productName, productId) => {
                 return { title, price, image, description, specifications, seller, url, found: true };
             } catch (error) {
                 console.log(`Error processing product ${productId} from Alkosto:`, error);
+                return { found: false }
             }
         } else {
             console.log('No matching product found for the given productId on Alkosto:', productId);

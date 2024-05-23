@@ -9,6 +9,7 @@
     "playwright": "^1.44.0"
   },
   "scripts": {
+    "start": "node main.js",
     "dev": "nodemon main.js"
   },
   "keywords": [],

@@ -11,13 +11,14 @@ const scrapingFalabella = async (productName) => {
 
         while (count < 3) {
             const product = await getFalabellaProduct(page, productName, index);
-            if (!product || !product.found) break;
 
-            productos.push(product);
-            count++;
+            if (product && product.found) {
+                productos.push(product);
+                count++;
+            }
+
             index++;
 
-            if (index - count > 3) break;
         }
     } catch (error) {
         console.error('Error in scrapingFalabella:', error);
@@ -97,6 +98,7 @@ const getFalabellaProduct = async (page, productName, productId) => {
                 return { title, price, image, description, specifications, seller, url, found: true };
             } catch (error) {
                 console.log(`Error processing product ${productId} from Falabella:`, error);
+                return { found: false }
             }
 
         } else {

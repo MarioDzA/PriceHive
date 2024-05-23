@@ -1,198 +1,200 @@
 <!DOCTYPE html>
 <html lang="en">
-  <head>
+
+<head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <link rel="stylesheet" href="/styles.css?v=1.1" />
     <link
-      href="https://fonts.googleapis.com/css2?family=Lato:ital,wght@0,100;0,300;0,400;0,700;0,900;1,100;1,300;1,400;1,700;1,900&family=Montserrat:wght@500&display=swap"
-      rel="stylesheet"
-    />
+        href="https://fonts.googleapis.com/css2?family=Lato:ital,wght@0,100;0,300;0,400;0,700;0,900;1,100;1,300;1,400;1,700;1,900&family=Montserrat:wght@500&display=swap"
+        rel="stylesheet" />
     <title>PriceHive</title>
-  </head>
-  <body>
+</head>
+
+<body>
     <img src="/PriceHive.png" alt="Logo" id="logo" />
     <form id="scrape-form">
-      <label for="productName">Product Name:</label>
-      <input type="text" id="productName" name="productName" required />
-      <button type="submit">Search</button>
+        <label for="productName">Product Name:</label>
+        <input type="text" id="productName" name="productName" required />
+        <button type="submit">Search</button>
     </form>
     <div id="filters">
-      <label for="sortOrder">Sort by Price:</label>
-      <select id="sortOrder">
-        <option value="asc">Lowest to Highest</option>
-        <option value="desc">Highest to Lowest</option>
-      </select>
+        <label for="sortOrder">Sort by Price:</label>
+        <select id="sortOrder">
+            <option value="asc">Lowest to Highest</option>
+            <option value="desc">Highest to Lowest</option>
+        </select>
     </div>
     <div id="loading" class="hidden">
-      <div class="loader"></div>
+        <div class="loader"></div>
     </div>
     <div id="results" class="hidden"></div>
     <div id="pagination"></div>
     <script>
-      document
-        .getElementById("scrape-form")
-        .addEventListener("submit", async function(event) {
-          event.preventDefault();
-          const productName = document.getElementById("productName").value;
+        document
+            .getElementById("scrape-form")
+            .addEventListener("submit", async function (event) {
+                event.preventDefault();
+                const productName = document.getElementById("productName").value;
 
-          // Mostrar el loader
-          document.getElementById("loading").classList.remove("hidden");
-          document.getElementById("results").classList.add("hidden");
-          document.getElementById("pagination").classList.add("hidden");
+                // Mostrar el loader
+                document.getElementById("loading").classList.remove("hidden");
+                document.getElementById("results").classList.add("hidden");
+                document.getElementById("pagination").classList.add("hidden");
 
-          const response = await fetch("/scrape", {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-            },
-            body: JSON.stringify({ productName }),
-          });
+                const response = await fetch("/scrape", {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                    },
+                    body: JSON.stringify({ productName }),
+                });
 
-          const results = await response.json();
+                const results = await response.json();
 
-          // Ocultar el loader
-          document.getElementById("loading").classList.add("hidden");
-          document.getElementById("results").classList.remove("hidden");
-          document.getElementById("pagination").classList.remove("hidden");
+                // Ocultar el loader
+                document.getElementById("loading").classList.add("hidden");
+                document.getElementById("results").classList.remove("hidden");
+                document.getElementById("pagination").classList.remove("hidden");
 
-          displayResults(results);
-        });
+                displayResults(results);
+            });
 
-      document
-        .getElementById("sortOrder")
-        .addEventListener("change", function() {
-          const sortOrder = document.getElementById("sortOrder").value;
-          sortAndDisplayResults(sortOrder);
-        });
+        document
+            .getElementById("sortOrder")
+            .addEventListener("change", function () {
+                const sortOrder = document.getElementById("sortOrder").value;
+                sortAndDisplayResults(sortOrder);
+            });
 
-      let currentResults = [];
+        let currentResults = [];
 
-      function displayResults(results) {
-        currentResults = results;
-        sortAndDisplayResults(document.getElementById("sortOrder").value);
-      }
-
-      function sortAndDisplayResults(sortOrder) {
-        const sortedResults = currentResults.slice().sort((a, b) => {
-          const priceA = parseFloat(a.price.replace(/[^\d.-]/g, ""));
-          const priceB = parseFloat(b.price.replace(/[^\d.-]/g, ""));
-          if (sortOrder === "asc") {
-            return priceA - priceB;
-          } else {
-            return priceB - priceA;
-          }
-        });
-
-        renderResults(sortedResults);
-        setupPagination(sortedResults);
-      }
-
-      function renderResults(results) {
-        const resultsContainer = document.getElementById("results");
-        resultsContainer.innerHTML = ""; // Clear previous results
-
-        results.forEach((product) => {
-          const productElement = document.createElement("div");
-          productElement.classList.add("result");
-
-          if (product.image) {
-            const imgElement = document.createElement("img");
-            imgElement.src = product.image;
-            productElement.appendChild(imgElement);
-          }
-
-          const detailsElement = document.createElement("div");
-          detailsElement.classList.add("result-details");
-
-          if (product.title) {
-            const nameElement = document.createElement("p");
-            nameElement.textContent = `Name: ${product.title}`;
-            detailsElement.appendChild(nameElement);
-          }
-
-          if (product.seller) {
-            const sellerElement = document.createElement("p");
-            sellerElement.textContent = `Seller: ${product.seller}`;
-            detailsElement.appendChild(sellerElement);
-          }
-
-          if (product.price) {
-            const priceElement = document.createElement("p");
-            priceElement.textContent = `Price: ${product.price}`;
-            detailsElement.appendChild(priceElement);
-          }
-
-          if (product.description) {
-            const descriptionElement = document.createElement("p");
-            const shortDescription =
-              product.description.length > 200
-                ? product.description.substring(0, 200) + "..."
-                : product.description;
-            descriptionElement.innerHTML = `Description: ${shortDescription}`;
-
-            if (product.description.length > 200) {
-              const readMoreLink = document.createElement("a");
-              readMoreLink.textContent = "Read more";
-              readMoreLink.href = "#";
-              readMoreLink.classList.add("read-more");
-              readMoreLink.onclick = function() {
-                descriptionElement.innerHTML = `Description: ${product.description}`;
-                return false; // Prevent default link behavior
-              };
-              descriptionElement.appendChild(readMoreLink);
-            }
-
-            detailsElement.appendChild(descriptionElement);
-          }
-
-          if (product.url) {
-            const linkElement = document.createElement("a");
-            linkElement.href = product.url;
-            linkElement.textContent = "View Product";
-            linkElement.target = "_blank"; // Open in new tab
-            linkElement.classList.add("view-product-button"); // Add a class for styling
-            detailsElement.appendChild(linkElement);
-          }
-
-          productElement.appendChild(detailsElement);
-          resultsContainer.appendChild(productElement);
-        });
-      }
-
-      function setupPagination(results) {
-        const paginationContainer = document.getElementById("pagination");
-        paginationContainer.innerHTML = ""; // Clear previous pagination
-
-        const totalPages = Math.ceil(results.length / 5);
-
-        for (let i = 1; i <= totalPages; i++) {
-          const pageButton = document.createElement("button");
-          pageButton.textContent = i;
-          pageButton.addEventListener("click", () => paginate(results, i));
-          paginationContainer.appendChild(pageButton);
+        function displayResults(results) {
+            currentResults = results;
+            sortAndDisplayResults(document.getElementById("sortOrder").value);
         }
 
-        // Show first page by default
-        paginate(results, 1);
-      }
+        function sortAndDisplayResults(sortOrder) {
+            const sortedResults = currentResults.slice().sort((a, b) => {
+                const priceA = parseFloat(a.price.replace(/[^\d.-]/g, ""));
+                const priceB = parseFloat(b.price.replace(/[^\d.-]/g, ""));
+                if (sortOrder === "asc") {
+                    return priceA - priceB;
+                } else {
+                    return priceB - priceA;
+                }
+            });
 
-      function paginate(results, page) {
-        const resultsContainer = document.getElementById("results");
-        resultsContainer.innerHTML = ""; // Clear previous results
+            renderResults(sortedResults);
+            setupPagination(sortedResults);
+        }
 
-        const start = (page - 1) * 5;
-        const end = start + 5;
-        const paginatedResults = results.slice(start, end);
+        function renderResults(results) {
+            const resultsContainer = document.getElementById("results");
+            resultsContainer.innerHTML = ""; // Clear previous results
 
-        renderResults(paginatedResults);
+            results.forEach((product) => {
+                const productElement = document.createElement("div");
+                productElement.classList.add("result");
 
-        // Highlight current page button
-        const paginationContainer = document.getElementById("pagination");
-        Array.from(paginationContainer.children).forEach((button, index) => {
-          button.classList.toggle("active", index === page - 1);
-        });
-      }
+                if (product.image) {
+                    const imgElement = document.createElement("img");
+                    imgElement.src = product.image;
+                    productElement.appendChild(imgElement);
+                }
+
+                const detailsElement = document.createElement("div");
+                detailsElement.classList.add("result-details");
+
+                if (product.title) {
+                    const nameElement = document.createElement("p");
+                    nameElement.textContent = `Name: ${product.title}`;
+                    detailsElement.appendChild(nameElement);
+                }
+
+                if (product.seller) {
+                    const sellerElement = document.createElement("p");
+                    sellerElement.textContent = `Seller: ${product.seller}`;
+                    detailsElement.appendChild(sellerElement);
+                }
+
+                if (product.price) {
+                    const priceElement = document.createElement("p");
+                    priceElement.textContent = `Price: ${product.price}`;
+                    detailsElement.appendChild(priceElement);
+                }
+
+                if (product.description) {
+                    const descriptionElement = document.createElement("p");
+                    const shortDescription =
+                        product.description.length > 200
+                            ? product.description.substring(0, 200) + "..."
+                            : product.description;
+                    descriptionElement.innerHTML = `Description: ${shortDescription}`;
+
+                    if (product.description.length > 200) {
+                        const readMoreLink = document.createElement("a");
+                        readMoreLink.textContent = "Read more";
+                        readMoreLink.href = "#";
+                        readMoreLink.classList.add("read-more");
+                        readMoreLink.onclick = function () {
+                            descriptionElement.innerHTML = `Description: ${product.description}`;
+                            return false; // Prevent default link behavior
+                        };
+                        descriptionElement.appendChild(readMoreLink);
+                    }
+
+                    detailsElement.appendChild(descriptionElement);
+                }
+
+                if (product.url) {
+                    const linkElement = document.createElement("a");
+                    linkElement.href = product.url;
+                    linkElement.textContent = "View Product";
+                    linkElement.target = "_blank"; // Open in new tab
+                    linkElement.classList.add("view-product-button"); // Add a class for styling
+                    detailsElement.appendChild(linkElement);
+                }
+
+                productElement.appendChild(detailsElement);
+                resultsContainer.appendChild(productElement);
+            });
+        }
+
+        function setupPagination(results) {
+            const paginationContainer = document.getElementById("pagination");
+            paginationContainer.innerHTML = ""; // Clear previous pagination
+
+            const totalPages = Math.ceil(results.length / 5);
+
+            for (let i = 1; i <= totalPages; i++) {
+                const pageButton = document.createElement("button");
+                pageButton.textContent = i;
+                pageButton.addEventListener("click", () => paginate(results, i));
+                paginationContainer.appendChild(pageButton);
+            }
+
+            // Show first page by default
+            paginate(results, 1);
+        }
+
+        function paginate(results, page) {
+            const resultsContainer = document.getElementById("results");
+            resultsContainer.innerHTML = ""; // Clear previous results
+
+            const start = (page - 1) * 5;
+            const end = start + 5;
+            const paginatedResults = results.slice(start, end);
+
+            renderResults(paginatedResults);
+
+            // Highlight current page button
+            const paginationContainer = document.getElementById("pagination");
+            Array.from(paginationContainer.children).forEach((button, index) => {
+                button.classList.toggle("active", index === page - 1);
+            });
+        }
     </script>
-  </body>
+</body>
+
 </html>
