@@ -1,11 +1,16 @@
-const express = require('express');
-const bodyParser = require('body-parser');
-const path = require('path');
-const scraperAlkosto = require('./scrapers/scraper_alkosto');
-const scraperMercadoLibre = require('./scrapers/scraper_mercadolibre');
-const scraperExito = require('./scrapers/scraper_exito');
-const scraperFalabella = require('./scrapers/scraper_falabella');
-const scraperOlimpica = require('./scrapers/scraper_olimpica');
+import express from 'express';
+import bodyParser from 'body-parser';
+import path from 'path';
+import { fileURLToPath } from 'url';
+import scraperAlkosto from './scrapers/scraper_alkosto.js';
+import scraperMercadoLibre from './scrapers/scraper_mercadolibre.js';
+import scraperExito from './scrapers/scraper_exito.js';
+import scraperFalabella from './scrapers/scraper_falabella.js';
+import scraperOlimpica from './scrapers/scraper_olimpica.js';
+
+// Define __dirname
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -14,12 +19,10 @@ const PORT = process.env.PORT || 3000;
 app.use(bodyParser.json());
 app.use(express.static(path.join(__dirname, 'public')));
 
-// Serve the HTML file from the root directory
 app.get('/', (req, res) => {
     res.sendFile(path.join(__dirname, 'index.html'));
 });
 
-// Handle form submission
 app.post('/scrape', async (req, res) => {
     const { productName } = req.body;
     if (!productName) {
@@ -35,8 +38,7 @@ app.post('/scrape', async (req, res) => {
             scraperOlimpica(productName)
         ]);
 
-        // Combine results from all scrapers into a single array
-        const products = scrapeResults.reduce((accumulator, current) => accumulator.concat(current), []);
+        const products = scrapeResults.flat();
 
         res.send(products);
     } catch (error) {
@@ -48,4 +50,3 @@ app.post('/scrape', async (req, res) => {
 app.listen(PORT, () => {
     console.log(`Server is running on http://localhost:${PORT}`);
 });
-

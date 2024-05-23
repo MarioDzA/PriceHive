@@ -1,4 +1,4 @@
-const { chromium } = require('playwright');
+import { chromium } from 'playwright';
 
 const scrapingAlkosto = async (productName) => {
     const productos = [];
@@ -97,4 +97,4 @@ const getAlkostoProduct = async (page, productName, productId) => {
 
 };
 
-module.exports = scrapingAlkosto;
+export default scrapingAlkosto;

@@ -1,4 +1,4 @@
-const { chromium } = require('playwright');
+import { chromium } from 'playwright';
 
 const scrapingOlimpica = async (productName) => {
     const productos = [];
@@ -118,4 +118,4 @@ const getOlimpicaProduct = async (page, productName, productId) => {
     }
 };
 
-module.exports = scrapingOlimpica;
+export default scrapingOlimpica;

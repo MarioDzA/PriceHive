@@ -1,4 +1,4 @@
-const { chromium } = require('playwright');
+import { chromium } from 'playwright';
 
 const scrapingFalabella = async (productName) => {
     const productos = [];
@@ -111,4 +111,4 @@ const getFalabellaProduct = async (page, productName, productId) => {
     }
 };
 
-module.exports = scrapingFalabella;
+export default scrapingFalabella;
