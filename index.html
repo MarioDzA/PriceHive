@@ -105,9 +105,9 @@
           const detailsElement = document.createElement("div");
           detailsElement.classList.add("result-details");
 
-          if (product.name) {
+          if (product.title) {
             const nameElement = document.createElement("p");
-            nameElement.textContent = `Name: ${product.name}`;
+            nameElement.textContent = `Name: ${product.title}`;
             detailsElement.appendChild(nameElement);
           }
 
@@ -142,7 +142,7 @@
 
           if (product.url) {
             const linkElement = document.createElement("a");
-            linkElement.href = product.link;
+            linkElement.href = product.url;
             linkElement.textContent = "View Product";
             linkElement.target = "_blank"; // Open in new tab
             linkElement.classList.add("view-product-button"); // Add a class for styling
