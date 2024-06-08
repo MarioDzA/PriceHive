@@ -57,7 +57,7 @@ const getOlimpicaProduct = async (page, productName, productId) => {
             if (exclusions.some(exclusion => text.includes(exclusion))) {
                 return false;
             }
-            return productWords.every(word => words.some(w => wordCheck(word, w)));
+            return productWords.some(word => words.some(w => wordCheck(word, w)));
         }));
 
         const finalItems = items.filter((_item, index) => filteredItems[index]);

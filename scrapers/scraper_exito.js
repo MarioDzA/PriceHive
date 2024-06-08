@@ -47,7 +47,7 @@ const getExitoProduct = async (page, productName, productId) => {
 
         const filteredItems = await Promise.all(items.map(async (item) => {
             const text = (await item.innerText()).toLowerCase().replace(/[\s\u00A0]+/g, " ");
-            return productName.trim().toLowerCase().split(' ').every(word => new RegExp(`\\b${word}\\b`, 'i').test(text));
+            return productName.trim().toLowerCase().split(' ').some(word => new RegExp(`\\b${word}\\b`, 'i').test(text));
         }));
 
         const finalItems = items.filter((_item, index) => filteredItems[index]);

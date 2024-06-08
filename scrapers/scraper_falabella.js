@@ -54,11 +54,11 @@ const getFalabellaProduct = async (page, productName, productId) => {
 
         await new Promise(resolve => setTimeout(resolve, 3000));
 
-        const items = await page.$$('a.jsx-2481219049.jsx-2056183481');
+        const items = await page.$$('.pod-link');
 
         const filteredItems = await Promise.all(items.map(async (item) => {
             const text = (await item.innerText()).toLowerCase().replace(/[\s\u00A0]+/g, " ");
-            return productName.trim().toLowerCase().split(' ').every(word => new RegExp(`\\b${word}\\b`, 'i').test(text));
+            return productName.trim().toLowerCase().split(' ').some(word => new RegExp(`\\b${word}\\b`, 'i').test(text));
         }));
 
         const finalItems = items.filter((_item, index) => filteredItems[index]);
